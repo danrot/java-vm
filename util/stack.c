@@ -8,6 +8,7 @@ Stack* stack_init(int length)
     stack->current = 0;
     stack->length = length;
     stack->values = malloc(sizeof(int) * length);
+    return stack;
 }
 
 int stack_pop(Stack* stack)

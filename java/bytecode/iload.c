@@ -2,7 +2,7 @@
 
 void iload(int index)
 {
-    stack_push(stack, locals[index]);
+    stack_push(frame->stack, frame->locals[index]);
 }
 
 void iload_0()

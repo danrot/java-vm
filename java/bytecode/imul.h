@@ -1,9 +1,9 @@
 #ifndef _IMUL_H_
 #define _IMUL_H_
 
-#include "../util/stack.h"
+#include "../frame.h"
 
-extern Stack* stack;
+extern Frame* frame;
 
 void imul();
 

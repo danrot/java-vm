@@ -2,7 +2,7 @@
 
 void istore(int index)
 {
-    locals[index] = stack_pop(stack);
+    frame->locals[index] = stack_pop(frame->stack);
 }
 
 void istore_0()

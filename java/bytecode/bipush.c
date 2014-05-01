@@ -2,7 +2,7 @@
 
 void bipush(int i)
 {
-    stack_push(stack, i);
+    stack_push(frame->stack, i);
 }
 
 void iconst_m1(void)

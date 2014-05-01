@@ -1,9 +1,9 @@
 #ifndef _ILOAD_H_
 #define _ILOAD_H_
 
-#include "../util/stack.h"
+#include "../frame.h"
 
-extern Stack *stack;
+extern Frame *frame;
 extern int *locals;
 
 void iload(int index);

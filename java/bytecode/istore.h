@@ -1,9 +1,9 @@
 #ifndef _ISTORE_H_
 #define _ISTORE_H_
 
-#include "../util/stack.h"
+#include "../frame.h"
 
-extern Stack *stack;
+extern Frame *frame;
 extern int *locals;
 
 void istore(int index);

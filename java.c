@@ -3,15 +3,16 @@
 
 #include "util/stack.h"
 
-#include "java/bipush.h"
-#include "java/iload.h"
-#include "java/istore.h"
+#include "java/frame.h"
+
+#include "java/bytecode/bipush.h"
+#include "java/bytecode/iload.h"
+#include "java/bytecode/istore.h"
 
 int bytecode_length = 9;
 unsigned char bytecode[] = { 0x8, 0x3c, 0x10, 0x06, 0x3d, 0x1b, 0x1c, 0x68, 0x3c };
 
-Stack *stack;
-int *locals;
+Frame* frame;
 
 void init(void);
 void destroy(void);
@@ -23,7 +24,7 @@ int main(int argc, char** argv)
 
     interpret();
     
-    printf("Result: %i", locals[1]);
+    printf("Result: %i", frame->locals[1]);
     
     destroy();
 
@@ -32,14 +33,12 @@ int main(int argc, char** argv)
 
 void init(void)
 {
-    stack = stack_init(10);
-    locals = malloc(sizeof(int) * 10);
+    frame = frame_init();
 }
 
 void destroy(void)
 {
-    stack_destroy(stack);
-    free(locals);
+    frame_destroy(frame);
 }
 
 void interpret(void)
