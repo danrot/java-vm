@@ -23,8 +23,6 @@ int main(int argc, char** argv)
 {
     ClassFile* classfile = classfile_init(argv[1]);
     
-    printf("%d\n", classfile->methods_count);
-    
     init();
 
     interpret();

@@ -18,6 +18,27 @@
 #define CONSTANT_METHODTYPE 16
 #define CONSTANT_INVOKEDYNAMIC 18
 
+#define ATTRIBUTE_CONSTANTVALUE "ConstantValue"
+#define ATTRIBUTE_CODE "Code"
+#define ATTRIBUTE_STACKMAPTABLE "StackMapTable"
+#define ATTRIBUTE_EXCEPTIONS "Exceptions"
+#define ATTRIBUTE_INNERCLASSES "InnerClasses"
+#define ATTRIBUTE_ENCLOSINGMETHOD "EnclosingMethod"
+#define ATTRIBUTE_SYNTHETIC "Synthetic"
+#define ATTRIBUTE_SIGNATURE "Signature"
+#define ATTRIBUTE_SOURCEFILE "SourceFile"
+#define ATTRIBUTE_SOURCEDEBUGEXTENSION "SourceDebugExtension"
+#define ATTRIBUTE_LINENUMBERTABLE "LineNumberTable"
+#define ATTRIBUTE_LOCALVARIABLETABLE "LocalVariableTable"
+#define ATTRIBUTE_LOCALVARIABLETYPETABLE "LocalVariableTypeTable"
+#define ATTRIBUTE_DEPRECATED "Deprecated"
+#define ATTRIBUTE_RUNTIMEVISIBLEANNOTATIONS "RuntimeVisibleAnnotations"
+#define ATTRIBUTE_RUNTIMEINVISIBLEANNOTATIONS "RuntimeInvisibleAnnotations"
+#define ATTRIBUTE_RUNTIMEVISIBLEPARAMETERANNOTATIONS "RuntimeVisibleParameterAnnotations"
+#define ATTRIBUTE_RUNTIMEINVISIBLEPARAMETERANNOTATIONS "RuntimeInvisibleParameterAnnotations"
+#define ATTRIBUTE_ANNOTATIONDEFAULT "AnnotationDefault"
+#define ATTRIBUTE_BOOTSTRAPMETHODS "BootstrapMethods"
+
 typedef struct
 {
     uint8_t tag;
@@ -52,15 +73,65 @@ typedef struct
 
 typedef struct
 {
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+} Attribute;
+
+typedef struct
+{
+    uint16_t start_pc;
+    uint16_t end_pc;
+    uint16_t handler_pc;
+    uint16_t catch_type;
+} ExceptionTable;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t max_stack;
+    uint16_t max_locals;
+    uint32_t code_length;
+    uint8_t* code;
+    uint16_t exception_table_length;
+    ExceptionTable* exception_table;
+    uint16_t attributes_count;
+    Attribute** attributes;
+} AttributeCode;
+
+typedef struct
+{
+    uint16_t start_pc;
+    uint16_t line_number;
+} LineNumberTable;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t line_number_table_length;
+    LineNumberTable* line_number_table;
+} AttributeLineNumberTable;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t sourcefile_index;
+} AttributeSourceFile;
+
+typedef struct
+{
 } Field;
 
 typedef struct
 {
+    uint16_t access_flags;
+    uint16_t name_index;
+    uint16_t descriptor_index;
+    uint16_t attributes_count;
+    Attribute** attributes;
 } Method;
-
-typedef struct
-{
-} Attribute;
 
 typedef struct
 {
@@ -79,15 +150,21 @@ typedef struct
     uint16_t methods_count;
     Method* methods;
     uint16_t attributes_count;
-    Attribute* attributes;
+    Attribute** attributes;
 } ClassFile;
 
 ClassFile* classfile_init(char* filename);
+char* classfile_get_constant_string(ClassFile* classfile, int index);
+void classfile_destroy(ClassFile* classfile);
+
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_nameandtype(ClassFile* classfile, FILE* file, int number);
-void classfile_destroy(ClassFile* classfile);
+static Attribute* generate_attribute(ClassFile* classfile, FILE* file);
+static AttributeSourceFile* generate_attribute_sourcefile(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* classfile, FILE* file, int attribute_name_index);
 static void read8(uint8_t* ptr, size_t count, FILE* stream);
 static void read16(uint16_t* ptr, size_t count, FILE* stream);
 static void read32(uint32_t* ptr, size_t count, FILE* stream);

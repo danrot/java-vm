@@ -23,8 +23,6 @@ void stack_push(Stack* stack, int value)
 
 void stack_destroy(Stack* stack)
 {
-    free(stack->values);
-    stack->values = 0;
+    //free(stack->values); TODO Check why this does not work
     free(stack);
-    stack = 0;
 }
