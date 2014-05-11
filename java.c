@@ -4,6 +4,7 @@
 #include "util/stack.h"
 
 #include "java/frame.h"
+#include "java/classfile.h"
 
 #include "java/bytecode/bipush.h"
 #include "java/bytecode/iload.h"
@@ -20,6 +21,10 @@ void interpret(void);
 
 int main(int argc, char** argv)
 {
+    ClassFile* classfile = classfile_init(argv[1]);
+    
+    printf("%d\n", classfile->methods_count);
+    
     init();
 
     interpret();
@@ -27,6 +32,8 @@ int main(int argc, char** argv)
     printf("Result: %i", frame->locals[1]);
     
     destroy();
+    
+    classfile_destroy(classfile);
 
     return 0;
 }
