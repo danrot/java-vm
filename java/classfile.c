@@ -38,28 +38,28 @@ ClassFile* classfile_init(char* filename) {
                 generate_constant_class(classfile, file, i);
                 break;
             case CONSTANT_FIELDREF:
-                printf("fieldref");
+                generate_constant_fieldref(classfile, file, i);
                 break;
             case CONSTANT_METHODREF:
                 generate_constant_methodref(classfile, file, i);
                 break;
             case CONSTANT_INTERFACEMETHODREF:
-                printf("interface methodref");
+                printf("interface methodref\n");
                 break;
             case CONSTANT_STRING:
-                printf("string");
+                printf("string\n");
                 break;
             case CONSTANT_INTEGER:
-                printf("integer");
+                printf("integer\n");
                 break;
             case CONSTANT_FLOAT:
-                printf("float");
+                printf("float\n");
                 break;
             case CONSTANT_LONG:
-                printf("long");
+                printf("long\n");
                 break;
             case CONSTANT_DOUBLE:
-                printf("double");
+                printf("double\n");
                 break;
             case CONSTANT_NAMEANDTYPE:
                 generate_constant_nameandtype(classfile, file, i);
@@ -68,13 +68,13 @@ ClassFile* classfile_init(char* filename) {
                 generate_constant_utf8(classfile, file, i);
                 break;
             case CONSTANT_METHODHANDLE:
-                printf("method handle");
+                printf("method handle\n");
                 break;
             case CONSTANT_METHODTYPE:
-                printf("method type");
+                printf("method type\n");
                 break;
             case CONSTANT_INVOKEDYNAMIC:
-                printf("invoke dynmic");
+                printf("invoke dynmic\n");
                 break;
         }
     }
@@ -178,6 +178,17 @@ static void generate_constant_class(ClassFile* classfile, FILE* file, int number
     read16(&class->name_index, 1, file);
     
     classfile->constants[number] = (Constant*) class;
+}
+
+static void generate_constant_fieldref(ClassFile* classfile, FILE* file, int number)
+{
+    ConstantFieldRef* fieldref = malloc(sizeof(ConstantFieldRef));
+    fieldref->tag = CONSTANT_FIELDREF;
+    
+    read16(&fieldref->class_index, 1, file);
+    read16(&fieldref->name_and_type_index, 1, file);
+    
+    classfile->constants[number] = (Constant*) fieldref;
 }
 
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number)

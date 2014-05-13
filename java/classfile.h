@@ -61,6 +61,13 @@ typedef struct
 typedef struct
 {
     uint8_t tag;
+    uint16_t class_index;
+    uint16_t name_and_type_index;
+} ConstantFieldRef;
+
+typedef struct
+{
+    uint8_t tag;
     uint16_t length;
     uint8_t* bytes;
 } ConstantUtf8;
@@ -161,6 +168,7 @@ const AttributeCode* classfile_get_code_from_method(const ClassFile* classfile, 
 void classfile_destroy(ClassFile* classfile);
 
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);
+static void generate_constant_fieldref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_nameandtype(ClassFile* classfile, FILE* file, int number);
