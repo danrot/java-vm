@@ -133,9 +133,22 @@ ClassFile* classfile_init(char* filename) {
     return classfile;
 }
 
-char* classfile_get_constant_string(ClassFile* classfile, int index)
+char* classfile_get_constant_string(const ClassFile* classfile, int index)
 {
     return ((ConstantUtf8*) classfile->constants[index])->bytes;
+}
+
+const Method* classfile_get_method_by_name(const ClassFile* classfile, char* name)
+{
+    int i;
+    
+    printf("classfile_get_method_by_name: name: %s\n", name);
+    
+    for (i = 0; i < classfile->methods_count; i++) {
+        if (strcmp(classfile_get_constant_string(classfile, classfile->methods[i].name_index), name) == 0) {
+            return &classfile->methods[i];
+        }
+    }
 }
 
 void classfile_destroy(ClassFile* classfile)
@@ -144,6 +157,17 @@ void classfile_destroy(ClassFile* classfile)
     free(classfile->constants);
     // TODO destroy every method and attribute
     free(classfile);
+}
+
+const AttributeCode* classfile_get_code_from_method(const ClassFile* classfile, const Method* method)
+{
+    int i;
+    
+    for (i = 0; i < method->attributes_count; i++) {
+        if (strcmp(classfile_get_constant_string(classfile, method->attributes[i]->attribute_name_index), ATTRIBUTE_CODE) == 0) {
+            return (AttributeCode*) method->attributes[i];
+        }
+    }
 }
 
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number)

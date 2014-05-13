@@ -2,6 +2,7 @@
 #define _CLASSFILE_H_
 
 #include <inttypes.h>
+#include <stdio.h>
 
 #define CONSTANT_CLASS 7
 #define CONSTANT_FIELDREF 9
@@ -154,7 +155,9 @@ typedef struct
 } ClassFile;
 
 ClassFile* classfile_init(char* filename);
-char* classfile_get_constant_string(ClassFile* classfile, int index);
+char* classfile_get_constant_string(const ClassFile* classfile, int index);
+const Method* classfile_get_method_by_name(const ClassFile* classfile, char* name);
+const AttributeCode* classfile_get_code_from_method(const ClassFile* classfile, const Method* method);
 void classfile_destroy(ClassFile* classfile);
 
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);
