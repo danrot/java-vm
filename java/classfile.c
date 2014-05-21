@@ -6,19 +6,29 @@
 
 #include "classfile.h"
 
-ClassFile* classfile_init(char* filename) {
+ClassFile* classfile_init(char* classname) {
     int i;
+    char* pos;
     ClassFile* classfile = malloc(sizeof(ClassFile));
+    
+    // get path to class file
+    char* filename = classname;
+    while (pos = strstr(filename, ".")) {
+        strncpy(pos, "/", 1);
+    }
+    strcat(filename, ".class");
+    
+    printf("classfile_init: path: %s\n", filename);
     FILE* file = fopen(filename, "r");
     if (!file) {
-        printf("Unable to open file!");
+        printf("classfile_init: Unable to open file!");
         exit(1);
     }
     
     // magic number
     read32(&classfile->magic, 1, file);
     if (classfile->magic != 0xCAFEBABE) {
-        printf("Invalid magic number!");
+        printf("classfile_init: Invalid magic number!");
         exit(1);
     }
     

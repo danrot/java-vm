@@ -6,7 +6,7 @@
 #include "java/frame.h"
 #include "java/classfile.h"
 
-Frame* frame; //currently running frame
+Frame* frame; // currently running frame
 
 void run(ClassFile* classfile);
 

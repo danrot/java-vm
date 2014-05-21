@@ -7,14 +7,13 @@ void invokestatic(uint8_t indexbyte1, uint8_t indexbyte2)
     
     printf("invokestatic\n");
     uint16_t index = (indexbyte1 << 8) | indexbyte2;
-    printf("invokestatic: load constant %i\n", index);
     
     ConstantMethodRef* methodref =  (ConstantMethodRef*) frame->classfile->constants[index];
+    printf("invokestatic: %s\n", classfile_get_constant_string(frame->classfile, ((ConstantClass*)frame->classfile->constants[methodref->class_index])->name_index));
     
     // TODO load classfile
     classfile = frame->classfile;
     
-    printf("invokestatic: load method %i\n", methodref->name_and_type_index);
     char* name = classfile_get_constant_string(classfile, ((ConstantNameAndType*) classfile->constants[methodref->name_and_type_index])->name_index);
     const Method* method = classfile_get_method_by_name(classfile, name);
     
