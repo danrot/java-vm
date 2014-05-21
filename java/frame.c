@@ -3,6 +3,7 @@
 
 #include "frame.h"
 #include "bytecode/bipush.h"
+#include "bytecode/iadd.h"
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
 #include "bytecode/return.h"
@@ -77,6 +78,9 @@ void frame_run(Frame* frame)
                 v1 = *(++code);
                 istore(v1);
                 count = count - 1;
+                break;
+            case 0x60:
+                iadd();
                 break;
             case 0x3b:
                 istore_0();
