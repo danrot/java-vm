@@ -151,6 +151,18 @@ const Method* classfile_get_method_by_name(const ClassFile* classfile, char* nam
     }
 }
 
+int classfile_get_method_parameter_count(const ClassFile* classfile, const Method* method)
+{
+    int count;
+    char* descriptor = classfile_get_constant_string(classfile, method->descriptor_index);
+    printf("classfile_get_method_parameter_count: %s\n", descriptor);
+    
+    count = strlen(descriptor) - 3; // TODO make sure if this is working all the time (probably not...)
+    printf("classfile_get_method_parameter_count: %i\n", count);
+    
+    return count;
+}
+
 void classfile_destroy(ClassFile* classfile)
 {
     // TODO destroy every single constant
