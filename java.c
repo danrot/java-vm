@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 void run(ClassFile* classfile)
 {
     const Method* main = classfile_get_method_by_name(classfile, "main");
-    frame = frame_init(classfile, main);
+    frame = frame_init(classfile, main, NULL);
     frame_run(frame);
     frame_destroy(frame);
 }

@@ -5,7 +5,7 @@
 
 extern Frame *frame;
 
-void bipush(int i);
+void bipush(uint8_t i);
 
 void iconst_m1(void);
 void iconst_0(void);

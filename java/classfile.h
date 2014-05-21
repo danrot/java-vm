@@ -40,6 +40,8 @@
 #define ATTRIBUTE_ANNOTATIONDEFAULT "AnnotationDefault"
 #define ATTRIBUTE_BOOTSTRAPMETHODS "BootstrapMethods"
 
+#define METHOD_ACCESSFLAG_NATIVE 0x100
+
 typedef struct
 {
     uint8_t tag;

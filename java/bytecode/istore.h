@@ -4,7 +4,6 @@
 #include "../frame.h"
 
 extern Frame *frame;
-extern int *locals;
 
 void istore(int index);
 void istore_0();

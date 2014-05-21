@@ -1,6 +1,6 @@
 #include "bipush.h"
 
-void bipush(int i)
+void bipush(uint8_t i)
 {
     stack_push(frame->stack, i);
 }

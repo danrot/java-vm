@@ -5,13 +5,15 @@
 #include "bytecode/bipush.h"
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
+#include "bytecode/return.h"
 
-Frame* frame_init(const ClassFile* classfile, const Method* method)
+Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* parent)
 {
     Frame* frame = malloc(sizeof(Frame));
     frame->classfile = classfile;
     frame->method = method;
     frame->code = classfile_get_code_from_method(frame->classfile, frame->method);
+    frame->parent = parent;
     frame->locals = malloc(sizeof(uint32_t) * frame->code->max_locals);
     frame->stack = stack_init(frame->code->max_stack);
     return frame;
@@ -21,10 +23,13 @@ void frame_run(Frame* frame)
 {
     printf("frame_run\n");
     int i = 0;
-    int v1;
-    for (i = 0; i < frame->code->code_length; ++i) {
-        printf("frame_run: bytecode %i: %x\n", i, frame->code->code[i]);
-        switch (frame->code->code[i]) {
+    uint8_t* code = frame->code->code;
+    int count = frame->code->code_length;
+    
+    uint8_t v1, v2;
+    while (count) {
+        printf("frame_run: bytecode %i: %x\n", i, *code);
+        switch (*code) {
             case 0x2:
                 iconst_m1();
                 break;
@@ -47,12 +52,14 @@ void frame_run(Frame* frame)
                 iconst_5();
                 break;
             case 0x10:
-                v1 = frame->code->code[++i];
+                v1 = *(++code);
                 bipush(v1);
+                count = count - 1;
                 break;
             case 0x15:
-                v1 = frame->code->code[++i];
+                v1 = *(++code);
                 iload(v1);
+                count = count - 1;
                 break;
             case 0x1a:
                 iload_0();
@@ -67,8 +74,9 @@ void frame_run(Frame* frame)
                 iload_3();
                 break;
             case 0x36:
-                v1 = frame->code->code[++i];
+                v1 = *(++code);
                 istore(v1);
+                count = count - 1;
                 break;
             case 0x3b:
                 istore_0();
@@ -85,7 +93,17 @@ void frame_run(Frame* frame)
             case 0x68:
                 imul();
                 break;
+            case 0xac:
+                ireturn();
+                break;
+            case 0xb8:
+                v1 = *(++code);
+                v2 = *(++code);
+                invokestatic(v1, v2);
+                count = count - 2;
         }
+        code = code + 1;
+        count = count - 1;
     }
 }
 

@@ -4,16 +4,19 @@
 #include "../util/stack.h"
 #include "classfile.h"
 
-typedef struct
+struct Frame
 {
     const ClassFile* classfile;
     const Method* method;
     const AttributeCode* code;
+    struct Frame* parent;
     Stack* stack;
-    int* locals;
-} Frame;
+    uint32_t* locals;
+};
 
-Frame* frame_init(const ClassFile* classfile, const Method* method);
+typedef struct Frame Frame;
+
+Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* parent);
 void frame_run(Frame* frame);
 void frame_destroy(Frame* frame);
 
