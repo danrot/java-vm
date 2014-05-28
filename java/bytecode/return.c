@@ -7,7 +7,6 @@ void ireturn()
     // TODO monitor handling
     
     uint32_t value = stack_pop(frame->stack);
-    printf("ireturn: %i\n", value);
     
     stack_push(frame->parent->stack, value);
     

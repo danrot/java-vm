@@ -6,6 +6,7 @@
 #include "bytecode/iadd.h"
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
+#include "bytecode/newarray.h"
 #include "bytecode/return.h"
 
 Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* parent)
@@ -22,7 +23,6 @@ Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* paren
 
 void frame_run(Frame* frame)
 {
-    printf("frame_run\n");
     int i = 0;
     uint8_t* code = frame->code->code;
     int count = frame->code->code_length;
@@ -105,6 +105,11 @@ void frame_run(Frame* frame)
                 v2 = *(++code);
                 invokestatic(v1, v2);
                 count = count - 2;
+                break;
+            case 0xbc:
+                v1 = *(++code);
+                newarray(v1);
+                break;
         }
         code = code + 1;
         count = count - 1;
