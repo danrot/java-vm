@@ -15,5 +15,6 @@ void newarray(uint8_t atype)
     }
     
     array = malloc(size);
+    printf("newarray: address: %i\n", (int)(uintptr_t) array);
     stack_push(frame->stack, (int)(uintptr_t) array);
 }

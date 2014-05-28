@@ -2,11 +2,13 @@
 #include <inttypes.h>
 
 #include "frame.h"
+#include "bytecode/aload.h"
 #include "bytecode/bipush.h"
 #include "bytecode/iadd.h"
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
 #include "bytecode/newarray.h"
+#include "bytecode/dup.h"
 #include "bytecode/return.h"
 
 Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* parent)
@@ -62,6 +64,10 @@ void frame_run(Frame* frame)
                 iload(v1);
                 count = count - 1;
                 break;
+            case 0x19:
+                v1 = *(++code);
+                aload(v1);
+                break;
             case 0x1a:
                 iload_0();
                 break;
@@ -74,13 +80,29 @@ void frame_run(Frame* frame)
             case 0x1d:
                 iload_3();
                 break;
+            case 0x2a:
+                aload_0();
+                break;
+            case 0x2b:
+                aload_1();
+                break;
+            case 0x2c:
+                aload_2();
+                break;
+            case 0x2d:
+                aload_3();
+                break;
+            case 0x2e:
+                iaload();
+                break;
             case 0x36:
                 v1 = *(++code);
                 istore(v1);
                 count = count - 1;
                 break;
-            case 0x60:
-                iadd();
+            case 0x3a:
+                v1 = *(++code);
+                astore(v1);
                 break;
             case 0x3b:
                 istore_0();
@@ -93,6 +115,27 @@ void frame_run(Frame* frame)
                 break;
             case 0x3e:
                 istore_3();
+                break;
+            case 0x4b:
+                astore_0();
+                break;
+            case 0x4c:
+                astore_1();
+                break;
+            case 0x4d:
+                astore_2();
+                break;
+            case 0x4e:
+                astore_3();
+                break;
+            case 0x4f:
+                iastore();
+                break;
+            case 0x59:
+                dupj();
+                break;
+            case 0x60:
+                iadd();
                 break;
             case 0x68:
                 imul();
