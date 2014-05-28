@@ -7,14 +7,14 @@
 #include "classfile.h"
 
 ClassFile* classfile_init(const char* filename) {
+    // TODO first check if class has already been loaded
+    
     int i;
     char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
     ClassFile* classfile = malloc(sizeof(ClassFile));
     
     strcpy(tmp, filename);
-    
-    printf("classfile_init: %s\n", tmp);
-    
+        
     // get path to class file
     strcat(tmp, ".class");
     
@@ -108,27 +108,21 @@ ClassFile* classfile_init(const char* filename) {
     
     for (i = 0; i < classfile->methods_count; i++) {
         int j = 0;
-        
-        printf("classfile_init: method %i\n",i);
     
         read16(&classfile->methods[i].access_flags, 1, file);
         read16(&classfile->methods[i].name_index, 1, file);
         read16(&classfile->methods[i].descriptor_index, 1, file);
         read16(&classfile->methods[i].attributes_count, 1, file);
         
-        printf("classfile_init: method %s: attribute length: %i\n", classfile_get_constant_string(classfile, classfile->methods[i].name_index), classfile->methods[i].attributes_count);
         if (classfile->methods[i].attributes_count) {
             classfile->methods[i].attributes = malloc(classfile->methods[i].attributes_count * sizeof(Attribute*));
             for (j = 0; j < classfile->methods[i].attributes_count; j++) {
                 classfile->methods[i].attributes[j] = generate_attribute(classfile, file);
             }
         }
-        
-        printf("classfile_init: method %s: done\n", classfile_get_constant_string(classfile, classfile->methods[i].name_index));
     }
     
     read16(&classfile->attributes_count, 1, file);
-    printf("classfile_init: attributes_count: %i\n", classfile->attributes_count);
     
     if (classfile->attributes_count) {
         classfile->attributes = malloc(classfile->attributes_count * sizeof(Attribute*));
@@ -290,12 +284,9 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
     read32(&code->code_length, 1, file);
     
     code->code = malloc(code->code_length * sizeof(uint8_t));
-    printf("generate_attribute_code: code: ");
     for (i = 0; i < code->code_length; i++) {
         read8(&code->code[i], 1, file);
-        printf("%x ", code->code[i]);
     }
-    printf("done\n");
     
     read16(&code->exception_table_length, 1, file);
     
@@ -311,7 +302,6 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
     
     read16(&code->attributes_count, 1, file);
     
-    printf("generate_attribute_code: attributes_count: %i\n", code->attributes_count);
     code->attributes = malloc(code->attributes_count * sizeof(Attribute*));
     for (i = 0; i < code->attributes_count; i++) {
         uint16_t attribute_name_index;
@@ -319,7 +309,6 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
         
         read16(&attribute_name_index, 1, file);
         attribute_name = classfile_get_constant_string(classfile, attribute_name_index);
-        printf("generate_attribute_code: subattribute %i: %s\n", attribute_name_index, attribute_name);
         
         if (strcmp(attribute_name, ATTRIBUTE_LINENUMBERTABLE) == 0) {
             code->attributes[i] = ((Attribute*) generate_attribute_linenumbertable(classfile, file, attribute_name_index)); //FIXME is that really correct?

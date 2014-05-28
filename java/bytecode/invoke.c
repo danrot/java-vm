@@ -9,7 +9,7 @@ void invokestatic(uint8_t indexbyte1, uint8_t indexbyte2)
     ConstantMethodRef* methodref =  (ConstantMethodRef*) frame->classfile->constants[index];
     char* classname = classfile_get_constant_string(frame->classfile, ((ConstantClass*)frame->classfile->constants[methodref->class_index])->name_index);
     
-    classfile = classfile_init(classname); // TODO load only if file is not loaded yet
+    classfile = classfile_init(classname);
     
     char* name = classfile_get_constant_string(frame->classfile, ((ConstantNameAndType*) frame->classfile->constants[methodref->name_and_type_index])->name_index);
     const Method* method = classfile_get_method_by_name(classfile, name);
