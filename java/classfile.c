@@ -6,20 +6,19 @@
 
 #include "classfile.h"
 
-ClassFile* classfile_init(char* classname) {
+ClassFile* classfile_init(const char* filename) {
     int i;
-    char* pos;
+    char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
     ClassFile* classfile = malloc(sizeof(ClassFile));
     
-    // get path to class file
-    char* filename = classname;
-    while (pos = strstr(filename, ".")) {
-        strncpy(pos, "/", 1);
-    }
-    strcat(filename, ".class");
+    strcpy(tmp, filename);
     
-    printf("classfile_init: path: %s\n", filename);
-    FILE* file = fopen(filename, "r");
+    printf("classfile_init: %s\n", tmp);
+    
+    // get path to class file
+    strcat(tmp, ".class");
+    
+    FILE* file = fopen(tmp, "r");
     if (!file) {
         printf("classfile_init: Unable to open file!");
         exit(1);
@@ -140,6 +139,8 @@ ClassFile* classfile_init(char* classname) {
     
     fclose(file);
     
+    free(tmp);
+    
     return classfile;
 }
 
@@ -151,9 +152,7 @@ char* classfile_get_constant_string(const ClassFile* classfile, int index)
 const Method* classfile_get_method_by_name(const ClassFile* classfile, char* name)
 {
     int i;
-    
-    printf("classfile_get_method_by_name: name: %s\n", name);
-    
+        
     for (i = 0; i < classfile->methods_count; i++) {
         if (strcmp(classfile_get_constant_string(classfile, classfile->methods[i].name_index), name) == 0) {
             return &classfile->methods[i];
@@ -165,10 +164,8 @@ int classfile_get_method_parameter_count(const ClassFile* classfile, const Metho
 {
     int count;
     char* descriptor = classfile_get_constant_string(classfile, method->descriptor_index);
-    printf("classfile_get_method_parameter_count: %s\n", descriptor);
     
     count = strlen(descriptor) - 3; // TODO make sure if this is working all the time (probably not...)
-    printf("classfile_get_method_parameter_count: %i\n", count);
     
     return count;
 }
@@ -232,10 +229,11 @@ static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number)
     
     read16(&utf8->length, 1, file);
     
-    utf8->bytes = malloc(utf8->length * sizeof(uint8_t));
+    utf8->bytes = malloc((utf8->length + 1) * sizeof(uint8_t));
     for (i = 0; i < utf8->length; i++) {
         read8(&utf8->bytes[i], 1, file);
     }
+    utf8->bytes[utf8->length] = '\0';
     
     classfile->constants[number] = (Constant*) utf8;
 }
@@ -259,7 +257,6 @@ static Attribute* generate_attribute(ClassFile* classfile, FILE* file)
     
     attribute_name = classfile_get_constant_string(classfile, attribute_name_index);
     
-    printf("generate_attribute: %s\n", attribute_name);
     if (strcmp(attribute_name, ATTRIBUTE_CODE) == 0) {
         return ((Attribute*) generate_attribute_code(classfile, file, attribute_name_index)); //FIXME is this really correct?
     } else if(strcmp(attribute_name, ATTRIBUTE_SOURCEFILE) == 0) {
@@ -325,16 +322,12 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
         printf("generate_attribute_code: subattribute %i: %s\n", attribute_name_index, attribute_name);
         
         if (strcmp(attribute_name, ATTRIBUTE_LINENUMBERTABLE) == 0) {
-            printf("generate_attribute_code: line number table\n");
             code->attributes[i] = ((Attribute*) generate_attribute_linenumbertable(classfile, file, attribute_name_index)); //FIXME is that really correct?
-            printf("generate_attribute_code: line number table done\n");
         } else {
             // TODO add other attributes
             printf("generate_attribute_code: missing attribute %s\n", attribute_name);
         }
     }
-    
-    printf("generate_attribute_code: done\n");
     
     return code;
 }
@@ -348,7 +341,6 @@ static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* c
     read32(&linenumbertable->attribute_length, 1, file);
     read16(&linenumbertable->line_number_table_length, 1, file);
     
-    printf("generate_attribute_linenumbertable: length: %i\n", linenumbertable->line_number_table_length);
     if (linenumbertable->line_number_table_length) {
         linenumbertable->line_number_table = malloc(linenumbertable->line_number_table_length * sizeof(LineNumberTable));
         for (i = 0; i < linenumbertable->line_number_table_length; i++) {
@@ -356,7 +348,6 @@ static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* c
             read16(&linenumbertable->line_number_table[i].line_number, 1, file);
         }
     }
-    printf("generate_attribute_linenumbertable: done\n");
     
     return linenumbertable;
 }

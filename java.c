@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "util/stack.h"
 
@@ -12,7 +13,16 @@ void run(ClassFile* classfile);
 
 int main(int argc, char** argv)
 {
-    ClassFile* classfile = classfile_init(argv[1]);
+    char* pos;
+    char* classname = malloc(sizeof(char) * strlen(argv[1]) + 1);
+    
+    strcpy(classname, argv[1]);
+    
+    while (pos = strstr(classname, ".")) {
+        strncpy(pos, "/", 1);
+    }
+
+    ClassFile* classfile = classfile_init(classname);
     
     run(classfile);
     

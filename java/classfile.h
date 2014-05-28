@@ -163,7 +163,7 @@ typedef struct
     Attribute** attributes;
 } ClassFile;
 
-ClassFile* classfile_init(char* classname);
+ClassFile* classfile_init(const char* filename);
 char* classfile_get_constant_string(const ClassFile* classfile, int index);
 const Method* classfile_get_method_by_name(const ClassFile* classfile, char* name);
 int classfile_get_method_parameter_count(const ClassFile* classfile, const Method* method);
