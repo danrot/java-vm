@@ -7,135 +7,143 @@
 #include "classfile.h"
 
 ClassFile* classfile_init(const char* filename) {
-    // TODO first check if class has already been loaded
-    
-    int i;
-    char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
-    ClassFile* classfile = malloc(sizeof(ClassFile));
-    
-    strcpy(tmp, filename);
+    void* classfile_address = hashtable_get(classfiles, filename);
+    if (classfile_address == NULL) {
+        printf("classfile_init: load new file\n");
+        int i;
+        char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
+        ClassFile* classfile = malloc(sizeof(ClassFile));
         
-    // get path to class file
-    strcat(tmp, ".class");
-    
-    FILE* file = fopen(tmp, "r");
-    if (!file) {
-        printf("classfile_init: Unable to open file!");
-        exit(1);
-    }
-    
-    // magic number
-    read32(&classfile->magic, 1, file);
-    if (classfile->magic != 0xCAFEBABE) {
-        printf("classfile_init: Invalid magic number!");
-        exit(1);
-    }
-    
-    read16(&classfile->minor_version, 1, file);
-    
-    read16(&classfile->major_version, 1, file);
-    
-    read16(&classfile->constant_count, 1, file);
-    
-    classfile->constants = malloc(classfile->constant_count * sizeof(Constant*));
-    for (i = 1; i < classfile->constant_count; i++) {
-        uint8_t tag;
-        read8(&tag, 1, file);
+        strcpy(tmp, filename);
+            
+        // get path to class file
+        strcat(tmp, ".class");
         
-        switch (tag) {
-            case CONSTANT_CLASS:
-                generate_constant_class(classfile, file, i);
-                break;
-            case CONSTANT_FIELDREF:
-                generate_constant_fieldref(classfile, file, i);
-                break;
-            case CONSTANT_METHODREF:
-                generate_constant_methodref(classfile, file, i);
-                break;
-            case CONSTANT_INTERFACEMETHODREF:
-                printf("interface methodref\n");
-                break;
-            case CONSTANT_STRING:
-                printf("string\n");
-                break;
-            case CONSTANT_INTEGER:
-                printf("integer\n");
-                break;
-            case CONSTANT_FLOAT:
-                printf("float\n");
-                break;
-            case CONSTANT_LONG:
-                printf("long\n");
-                break;
-            case CONSTANT_DOUBLE:
-                printf("double\n");
-                break;
-            case CONSTANT_NAMEANDTYPE:
-                generate_constant_nameandtype(classfile, file, i);
-                break;
-            case CONSTANT_UTF8:
-                generate_constant_utf8(classfile, file, i);
-                break;
-            case CONSTANT_METHODHANDLE:
-                printf("method handle\n");
-                break;
-            case CONSTANT_METHODTYPE:
-                printf("method type\n");
-                break;
-            case CONSTANT_INVOKEDYNAMIC:
-                printf("invoke dynmic\n");
-                break;
+        FILE* file = fopen(tmp, "r");
+        if (!file) {
+            printf("classfile_init: Unable to open file!");
+            exit(1);
         }
-    }
-    
-    read16(&classfile->access_flags, 1, file);
-    
-    read16(&classfile->this_class, 1, file);
-    
-    read16(&classfile->super_class, 1, file);
-    
-    read16(&classfile->interfaces_count, 1, file);
-    
-    // TODO read interfaces
-    
-    read16(&classfile->fields_count, 1, file);
-    
-    // TODO read fields
-    
-    read16(&classfile->methods_count, 1, file);
-    
-    classfile->methods = malloc(classfile->methods_count * sizeof(Method));
-    
-    for (i = 0; i < classfile->methods_count; i++) {
-        int j = 0;
-    
-        read16(&classfile->methods[i].access_flags, 1, file);
-        read16(&classfile->methods[i].name_index, 1, file);
-        read16(&classfile->methods[i].descriptor_index, 1, file);
-        read16(&classfile->methods[i].attributes_count, 1, file);
         
-        if (classfile->methods[i].attributes_count) {
-            classfile->methods[i].attributes = malloc(classfile->methods[i].attributes_count * sizeof(Attribute*));
-            for (j = 0; j < classfile->methods[i].attributes_count; j++) {
-                classfile->methods[i].attributes[j] = generate_attribute(classfile, file);
+        // magic number
+        read32(&classfile->magic, 1, file);
+        if (classfile->magic != 0xCAFEBABE) {
+            printf("classfile_init: Invalid magic number!");
+            exit(1);
+        }
+        
+        read16(&classfile->minor_version, 1, file);
+        
+        read16(&classfile->major_version, 1, file);
+        
+        read16(&classfile->constant_count, 1, file);
+        
+        classfile->constants = malloc(classfile->constant_count * sizeof(Constant*));
+        for (i = 1; i < classfile->constant_count; i++) {
+            uint8_t tag;
+            read8(&tag, 1, file);
+            
+            switch (tag) {
+                case CONSTANT_CLASS:
+                    generate_constant_class(classfile, file, i);
+                    break;
+                case CONSTANT_FIELDREF:
+                    generate_constant_fieldref(classfile, file, i);
+                    break;
+                case CONSTANT_METHODREF:
+                    generate_constant_methodref(classfile, file, i);
+                    break;
+                case CONSTANT_INTERFACEMETHODREF:
+                    printf("interface methodref\n");
+                    break;
+                case CONSTANT_STRING:
+                    printf("string\n");
+                    break;
+                case CONSTANT_INTEGER:
+                    printf("integer\n");
+                    break;
+                case CONSTANT_FLOAT:
+                    printf("float\n");
+                    break;
+                case CONSTANT_LONG:
+                    printf("long\n");
+                    break;
+                case CONSTANT_DOUBLE:
+                    printf("double\n");
+                    break;
+                case CONSTANT_NAMEANDTYPE:
+                    generate_constant_nameandtype(classfile, file, i);
+                    break;
+                case CONSTANT_UTF8:
+                    generate_constant_utf8(classfile, file, i);
+                    break;
+                case CONSTANT_METHODHANDLE:
+                    printf("method handle\n");
+                    break;
+                case CONSTANT_METHODTYPE:
+                    printf("method type\n");
+                    break;
+                case CONSTANT_INVOKEDYNAMIC:
+                    printf("invoke dynmic\n");
+                    break;
             }
         }
-    }
-    
-    read16(&classfile->attributes_count, 1, file);
-    
-    if (classfile->attributes_count) {
-        classfile->attributes = malloc(classfile->attributes_count * sizeof(Attribute*));
-        for (i = 0; i < classfile->attributes_count; i++) {
-            classfile->attributes[i] = generate_attribute(classfile, file);
+        
+        read16(&classfile->access_flags, 1, file);
+        
+        read16(&classfile->this_class, 1, file);
+        
+        read16(&classfile->super_class, 1, file);
+        
+        read16(&classfile->interfaces_count, 1, file);
+        
+        // TODO read interfaces
+        
+        read16(&classfile->fields_count, 1, file);
+        
+        // TODO read fields
+        
+        read16(&classfile->methods_count, 1, file);
+        
+        classfile->methods = malloc(classfile->methods_count * sizeof(Method));
+        
+        for (i = 0; i < classfile->methods_count; i++) {
+            int j = 0;
+        
+            read16(&classfile->methods[i].access_flags, 1, file);
+            read16(&classfile->methods[i].name_index, 1, file);
+            read16(&classfile->methods[i].descriptor_index, 1, file);
+            read16(&classfile->methods[i].attributes_count, 1, file);
+            
+            if (classfile->methods[i].attributes_count) {
+                classfile->methods[i].attributes = malloc(classfile->methods[i].attributes_count * sizeof(Attribute*));
+                for (j = 0; j < classfile->methods[i].attributes_count; j++) {
+                    classfile->methods[i].attributes[j] = generate_attribute(classfile, file);
+                }
+            }
         }
+        
+        read16(&classfile->attributes_count, 1, file);
+        
+        if (classfile->attributes_count) {
+            classfile->attributes = malloc(classfile->attributes_count * sizeof(Attribute*));
+            for (i = 0; i < classfile->attributes_count; i++) {
+                classfile->attributes[i] = generate_attribute(classfile, file);
+            }
+        }
+        
+        fclose(file);
+        
+        free(tmp);
+        
+        printf("classfile_init: put new file for %s to %x\n", filename, classfile);
+        hashtable_put(classfiles, filename, classfile);
+        
+        return classfile;
+    } else {
+        printf("classfile_init: load existing file for %s from %x\n", filename, classfile_address);
+        return (ClassFile*) classfile_address;
     }
-    
-    fclose(file);
-    
-    free(tmp);
-    
-    return classfile;
 }
 
 char* classfile_get_constant_string(const ClassFile* classfile, int index)

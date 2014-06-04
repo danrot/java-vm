@@ -25,13 +25,12 @@ Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* paren
 
 void frame_run(Frame* frame)
 {
-    int i = 0;
     uint8_t* code = frame->code->code;
     int count = frame->code->code_length;
     
     uint8_t v1, v2;
     while (count) {
-        printf("frame_run: bytecode %i: %x\n", i, *code);
+        printf("frame_run: bytecode: %x\n", *code);
         switch (*code) {
             case 0x2:
                 iconst_m1();

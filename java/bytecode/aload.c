@@ -30,11 +30,12 @@ void iaload()
     int index = stack_pop(frame->stack);
     int arrayref = stack_pop(frame->stack);
     int* array = (int*)(uintptr_t) arrayref;
+    int value = array[index];
     
     printf("iaload: index: %i\n", index);
     printf("iaload: arrayref: %i\n", arrayref);
-    printf("iaload: result: %i\n", array[index]);
+    printf("iaload: result: %i\n", value);
     
-    stack_push(frame->stack, array[index]);
+    stack_push(frame->stack, value);
 }
 

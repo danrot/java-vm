@@ -4,6 +4,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include "../util/hashtable.h"
+
 #define CONSTANT_CLASS 7
 #define CONSTANT_FIELDREF 9
 #define CONSTANT_METHODREF 10
@@ -41,6 +43,8 @@
 #define ATTRIBUTE_BOOTSTRAPMETHODS "BootstrapMethods"
 
 #define METHOD_ACCESSFLAG_NATIVE 0x100
+
+extern HashTable* classfiles;
 
 typedef struct
 {

@@ -30,7 +30,7 @@ void iastore()
     int value = stack_pop(frame->stack);
     int index = stack_pop(frame->stack);
     int arrayref = stack_pop(frame->stack);
-    int *array = (int*)(uintptr_t) arrayref;
+    int* array = (int*)(uintptr_t) arrayref;
     
     printf("iastore: value: %i\n", value);
     printf("iastore: index: %i\n", index);
