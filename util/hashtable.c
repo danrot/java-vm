@@ -26,8 +26,6 @@ void hashtable_put(HashTable* hashtable, const char* key, void* element)
     int index = hash(key, 0, hashtable->length);
     int i = 0;
     
-    printf("hashtable_put: %s: %i, %s\n", key, index, hashtable->keys[index]);
-    
     while (hashtable->keys[index] != NULL) {
         index = hash(key, ++i, hashtable->length);
     }

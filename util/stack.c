@@ -13,12 +13,12 @@ Stack* stack_init(int length)
 
 int stack_pop(Stack* stack)
 {
-    return stack->values[--stack->length];
+    return stack->values[--stack->current];
 }
 
 void stack_push(Stack* stack, int value)
 {
-    stack->values[stack->length++] = value;
+    stack->values[stack->current++] = value;
 }
 
 void stack_destroy(Stack* stack)

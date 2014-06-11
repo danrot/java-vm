@@ -136,12 +136,10 @@ ClassFile* classfile_init(const char* filename) {
         
         free(tmp);
         
-        printf("classfile_init: put new file for %s to %x\n", filename, classfile);
         hashtable_put(classfiles, filename, classfile);
         
         return classfile;
     } else {
-        printf("classfile_init: load existing file for %s from %x\n", filename, classfile_address);
         return (ClassFile*) classfile_address;
     }
 }

@@ -5,4 +5,5 @@ The following functionality have been implemented:
 * arithmetical operations for integer
 * variable handling for integers
 * invoking static methods
+* integer arrays
 
