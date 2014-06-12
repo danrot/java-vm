@@ -7,7 +7,7 @@
 #include "bytecode/iadd.h"
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
-#include "bytecode/newarray.h"
+#include "bytecode/new.h"
 #include "bytecode/dup.h"
 #include "bytecode/return.h"
 
@@ -142,12 +142,29 @@ void frame_run(Frame* frame)
             case 0xac:
                 ireturn();
                 break;
+            case 0xb6:
+                v1 = *(++code);
+                v2 = *(++code);
+                invokevirtual(v1, v2);
+                count = count - 2;
+                break;    
+            case 0xb7:
+                v1 = *(++code);
+                v2 = *(++code);
+                invokespecial(v1, v2);
+                count = count - 2;
+                break;
             case 0xb8:
                 v1 = *(++code);
                 v2 = *(++code);
                 invokestatic(v1, v2);
                 count = count - 2;
                 break;
+            case 0xbb:
+                v1 = *(++code);
+                v2 = *(++code);
+                new(v1, v2);
+                count = count - 2;
             case 0xbc:
                 v1 = *(++code);
                 newarray(v1);

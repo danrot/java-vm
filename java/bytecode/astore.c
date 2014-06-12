@@ -32,14 +32,8 @@ void iastore()
     int arrayref = stack_pop(frame->stack);
     int* array = (int*)(uintptr_t) arrayref;
     
-    printf("iastore: value: %i\n", value);
-    printf("iastore: index: %i\n", index);
-    printf("iastore: arrayref: %i\n", arrayref);
-    
     // TODO Throw NullPointerException and ArrayOutOfBoundsException
     
     array[index] = value;
-    
-    printf("iastore: result: %i\n", array[index]);
 }
 

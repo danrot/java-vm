@@ -1,5 +1,5 @@
-#ifndef _NEWARRAY_H_
-#define _NEWARRAY_H_
+#ifndef _NEW_H_
+#define _NEW_H_
 
 #define ATYPE_BOOLEAN 4
 #define ATYPE_CHAR 5
@@ -15,5 +15,6 @@
 extern Frame* frame;
 
 void newarray(uint8_t atype);
+void new(uint8_t indexbyte1, uint8_t indexbyte2);
 
 #endif

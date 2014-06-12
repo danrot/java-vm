@@ -9,7 +9,6 @@
 ClassFile* classfile_init(const char* filename) {
     void* classfile_address = hashtable_get(classfiles, filename);
     if (classfile_address == NULL) {
-        printf("classfile_init: load new file\n");
         int i;
         char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
         ClassFile* classfile = malloc(sizeof(ClassFile));
@@ -21,14 +20,14 @@ ClassFile* classfile_init(const char* filename) {
         
         FILE* file = fopen(tmp, "r");
         if (!file) {
-            printf("classfile_init: Unable to open file!");
+            printf("classfile_init: Unable to open file \"%s\"!\n", tmp);
             exit(1);
         }
         
         // magic number
         read32(&classfile->magic, 1, file);
         if (classfile->magic != 0xCAFEBABE) {
-            printf("classfile_init: Invalid magic number!");
+            printf("classfile_init: Invalid magic number!\n");
             exit(1);
         }
         
@@ -99,11 +98,31 @@ ClassFile* classfile_init(const char* filename) {
         
         // TODO read interfaces
         
+        // read fields
+        
         read16(&classfile->fields_count, 1, file);
         
-        // TODO read fields
+        classfile->fields = malloc(classfile->fields_count * sizeof(Field));
+        
+        for (i = 0; i < classfile->fields_count; i++) {
+            int j = 0;
+        
+            read16(&classfile->fields[i].access_flags, 1, file);
+            read16(&classfile->fields[i].name_index, 1, file);
+            read16(&classfile->fields[i].descriptor_index, 1, file);
+            read16(&classfile->fields[i].attributes_count, 1, file);
+            
+            if (classfile->fields[i].attributes_count) {
+                classfile->fields[i].attributes = malloc(classfile->fields[i].attributes_count * sizeof(Attribute*));
+                for (j = 0; j < classfile->fields[i].attributes_count; j++) {
+                    classfile->fields[i].attributes[j] = generate_attribute(classfile, file);
+                }
+            }
+        }
         
         read16(&classfile->methods_count, 1, file);
+        
+        // read methods
         
         classfile->methods = malloc(classfile->methods_count * sizeof(Method));
         
