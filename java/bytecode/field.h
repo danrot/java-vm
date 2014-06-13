@@ -6,5 +6,6 @@
 extern Frame* frame;
 
 void putfield(uint8_t indexbyte1, uint8_t indexbyte2);
+void getfield(uint8_t indexbyte1, uint8_t indexbyte2);
 
 #endif

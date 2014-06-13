@@ -4,6 +4,8 @@ This is an implementation of the Java Virtual Machine as specified by [http://do
 The following functionality have been implemented:
 * arithmetical operations for integer
 * variable handling for integers
-* invoking static methods
+* invoking static, virtual and special methods
 * integer arrays
+* create objects
+* writing and accessing fields in objects
 

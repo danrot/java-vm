@@ -143,6 +143,15 @@ void frame_run(Frame* frame)
             case 0xac:
                 ireturn();
                 break;
+            case 0xb1:
+                returnj();
+                break;
+            case 0xb4:
+                v1 = *(++code);
+                v2 = *(++code);
+                getfield(v1, v2);
+                count = count - 2;
+                break;
             case 0xb5:
                 v1 = *(++code);
                 v2 = *(++code);

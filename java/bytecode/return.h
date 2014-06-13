@@ -5,6 +5,7 @@
 
 extern Frame* frame;
 
+void returnj();
 void ireturn();
 
 #endif
