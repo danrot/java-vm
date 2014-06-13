@@ -8,6 +8,7 @@
 #include "bytecode/iload.h"
 #include "bytecode/istore.h"
 #include "bytecode/new.h"
+#include "bytecode/field.h"
 #include "bytecode/dup.h"
 #include "bytecode/return.h"
 
@@ -142,6 +143,12 @@ void frame_run(Frame* frame)
             case 0xac:
                 ireturn();
                 break;
+            case 0xb5:
+                v1 = *(++code);
+                v2 = *(++code);
+                putfield(v1, v2);
+                count = count - 2;
+                break;
             case 0xb6:
                 v1 = *(++code);
                 v2 = *(++code);
@@ -165,6 +172,7 @@ void frame_run(Frame* frame)
                 v2 = *(++code);
                 new(v1, v2);
                 count = count - 2;
+                break;
             case 0xbc:
                 v1 = *(++code);
                 newarray(v1);

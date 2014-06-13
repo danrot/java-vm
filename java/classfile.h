@@ -177,6 +177,8 @@ char* classfile_get_constant_string(const ClassFile* classfile, int index);
 const Method* classfile_get_method_by_name(const ClassFile* classfile, char* name);
 int classfile_get_method_parameter_count(const ClassFile* classfile, const Method* method);
 const AttributeCode* classfile_get_code_from_method(const ClassFile* classfile, const Method* method);
+const Field* classfile_get_field_by_name(const ClassFile* classfile, char* name);
+const int classfile_get_field_position(const ClassFile* classfile, const Field* field);
 void classfile_destroy(ClassFile* classfile);
 
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);

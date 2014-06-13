@@ -208,6 +208,37 @@ const AttributeCode* classfile_get_code_from_method(const ClassFile* classfile, 
     }
 }
 
+const Field* classfile_get_field_by_name(const ClassFile* classfile, char* name)
+{
+    int i;
+        
+    for (i = 0; i < classfile->fields_count; i++) {
+        if (strcmp(classfile_get_constant_string(classfile, classfile->fields[i].name_index), name) == 0) {
+            return &classfile->fields[i];
+        }
+    }
+}
+
+const int classfile_get_field_position(const ClassFile* classfile, const Field* field)
+{
+    int position = 0;
+    int current = 0;
+    
+    char* fieldname = classfile_get_constant_string(classfile, field->name_index);
+    
+    while (strcmp(classfile_get_constant_string(classfile, classfile->fields[current].name_index), fieldname) != 0) {
+        char* descriptor = classfile_get_constant_string(classfile, classfile->fields[current].descriptor_index);
+        
+        if (strcmp(descriptor, "I") == 0) {
+            position += 4;
+        }
+        
+        current = current + 1;
+    }
+    
+    return position;
+}
+
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number)
 {
     ConstantClass* class = malloc(sizeof(ConstantClass));

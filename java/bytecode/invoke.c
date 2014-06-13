@@ -19,7 +19,7 @@ void invokestatic(uint8_t indexbyte1, uint8_t indexbyte2)
     if (method->access_flags & METHOD_ACCESSFLAG_NATIVE) {
         invokenative(name);
     } else {
-        invoke(classfile, method);
+        invoke(classfile, method, 0);
     }
 }
 
@@ -36,6 +36,7 @@ void invokespecial(uint8_t indexbyte1, uint8_t indexbyte2)
     
     if (strcmp(classname, "java/lang/Object") == 0) {
         // FIXME load real Object, although its constructor does the same
+        stack_pop(frame->stack);
         
         return;
     }
@@ -52,7 +53,7 @@ void invokespecial(uint8_t indexbyte1, uint8_t indexbyte2)
     if (method->access_flags & METHOD_ACCESSFLAG_NATIVE) {
         invokenative(name);
     } else {
-        invoke(classfile, method);
+        invoke(classfile, method, 1);
     }
 }
 
@@ -82,7 +83,7 @@ void invokevirtual(uint8_t indexbyte1, uint8_t indexbyte2)
     if (method->access_flags & METHOD_ACCESSFLAG_NATIVE) {
         invokenative(name);
     } else {
-        invoke(classfile, method);
+        invoke(classfile, method, 1);
     }
 }
 
@@ -93,17 +94,20 @@ static void invokenative(char* name)
     }
 }
 
-static void invoke(const ClassFile* classfile, const Method* method) {
+static void invoke(const ClassFile* classfile, const Method* method, int with_object) {
     int parameters, i;
     
     // TODO check correctness of parameters
     parameters = classfile_get_method_parameter_count(classfile, method);
+    if (with_object) {
+        parameters = parameters + 1;
+    }
     
     // create new frame and set it as current
     frame = frame_init(classfile, method, frame);
     
     // load parameters
-    for (i = 0; i < parameters; i++) {
+    for (i = parameters - 1; i >= 0; i--) {
         frame->locals[i] = stack_pop(frame->parent->stack);
     }
     
