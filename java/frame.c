@@ -4,6 +4,7 @@
 #include "frame.h"
 #include "bytecode/push.h"
 #include "bytecode/add.h"
+#include "bytecode/sub.h"
 #include "bytecode/mul.h"
 #include "bytecode/load.h"
 #include "bytecode/store.h"
@@ -136,6 +137,9 @@ void frame_run(Frame* frame)
                 break;
             case 0x60:
                 iadd();
+                break;
+            case 0x64:
+                isub();
                 break;
             case 0x68:
                 imul();
