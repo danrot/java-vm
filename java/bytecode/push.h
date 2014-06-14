@@ -1,5 +1,5 @@
-#ifndef _BIPUSH_H_
-#define _BIPUSH_H_
+#ifndef _PUSH_H_
+#define _PUSH_H_
 
 #include "../frame.h"
 

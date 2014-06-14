@@ -1,9 +1,15 @@
-#ifndef _ASTORE_H_
-#define _ASTORE_H_
+#ifndef _STORE_H_
+#define _STORE_H_
 
 #include "../frame.h"
 
 extern Frame *frame;
+
+void istore(int index);
+void istore_0();
+void istore_1();
+void istore_2();
+void istore_3();
 
 void astore(uint8_t index);
 void astore_0();

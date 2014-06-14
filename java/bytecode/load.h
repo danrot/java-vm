@@ -1,9 +1,16 @@
-#ifndef _ALOAD_H_
-#define _ALOAD_H_
+#ifndef _LOAD_H_
+#define _LOAD_H_
 
 #include "../frame.h"
 
 extern Frame *frame;
+extern int *locals;
+
+void iload(int index);
+void iload_0();
+void iload_1();
+void iload_2();
+void iload_3();
 
 void aload(uint8_t index);
 void aload_0();

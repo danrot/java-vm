@@ -1,5 +1,5 @@
-#ifndef _IMUL_H_
-#define _IMUL_H_
+#ifndef _MUL_H_
+#define _MUL_H_
 
 #include "../frame.h"
 

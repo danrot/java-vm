@@ -2,11 +2,11 @@
 #include <inttypes.h>
 
 #include "frame.h"
-#include "bytecode/aload.h"
-#include "bytecode/bipush.h"
-#include "bytecode/iadd.h"
-#include "bytecode/iload.h"
-#include "bytecode/istore.h"
+#include "bytecode/push.h"
+#include "bytecode/add.h"
+#include "bytecode/mul.h"
+#include "bytecode/load.h"
+#include "bytecode/store.h"
 #include "bytecode/new.h"
 #include "bytecode/field.h"
 #include "bytecode/dup.h"
