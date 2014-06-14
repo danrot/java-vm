@@ -6,6 +6,7 @@
 #include "bytecode/add.h"
 #include "bytecode/sub.h"
 #include "bytecode/mul.h"
+#include "bytecode/div.h"
 #include "bytecode/load.h"
 #include "bytecode/store.h"
 #include "bytecode/new.h"
@@ -143,6 +144,9 @@ void frame_run(Frame* frame)
                 break;
             case 0x68:
                 imul();
+                break;
+            case 0x6c:
+                idiv();
                 break;
             case 0xac:
                 ireturn();
