@@ -10,18 +10,25 @@ ClassFile* classfile_init(const char* filename) {
     void* classfile_address = hashtable_get(classfiles, filename);
     if (classfile_address == NULL) {
         int i;
-        char* tmp = malloc(sizeof(char) * strlen(filename) + 1);
+        const char* jdk_prefix = "jdk/";
+        const char* class_suffix = ".class";
+        char* filepath = malloc(sizeof(char) * (strlen(filename) + strlen(class_suffix)) + 1);
+        char* jdk_filepath = malloc(sizeof(char) * (strlen(filename) + strlen(jdk_prefix) + strlen(class_suffix)) + 1);
         ClassFile* classfile = malloc(sizeof(ClassFile));
         
-        strcpy(tmp, filename);
+        strcpy(filepath, filename);
             
         // get path to class file
-        strcat(tmp, ".class");
+        sprintf(jdk_filepath, "%s%s%s", jdk_prefix, filename, class_suffix);
         
-        FILE* file = fopen(tmp, "r");
+        FILE* file = fopen(jdk_filepath, "r");
         if (!file) {
-            printf("classfile_init: Unable to open file \"%s\"!\n", tmp);
-            exit(1);
+            sprintf(filepath, "%s%s", filename, class_suffix);
+            file = fopen(filepath, "r");
+            if (!file) {
+                printf("classfile_init: Unable to open file \"%s\"!\n", filepath);
+                exit(1);
+            }
         }
         
         // magic number
@@ -56,10 +63,10 @@ ClassFile* classfile_init(const char* filename) {
                     printf("interface methodref\n");
                     break;
                 case CONSTANT_STRING:
-                    printf("string\n");
+                    generate_constant_string(classfile, file, i);
                     break;
                 case CONSTANT_INTEGER:
-                    printf("integer\n");
+                    generate_constant_integer(classfile, file, i);
                     break;
                 case CONSTANT_FLOAT:
                     printf("float\n");
@@ -153,7 +160,8 @@ ClassFile* classfile_init(const char* filename) {
         
         fclose(file);
         
-        free(tmp);
+        free(filepath);
+        free(jdk_filepath);
         
         hashtable_put(classfiles, filename, classfile);
         
@@ -271,6 +279,26 @@ static void generate_constant_methodref(ClassFile* classfile, FILE* file, int nu
     classfile->constants[number] = (Constant*) methodref;
 }
 
+static void generate_constant_string(ClassFile* classfile, FILE* file, int number)
+{
+    ConstantString* string = malloc(sizeof(ConstantString));
+    string->tag = CONSTANT_STRING;
+    
+    read16(&string->string_index, 1, file);
+    
+    classfile->constants[number] = (Constant*) string;
+}
+
+static void generate_constant_integer(ClassFile* classfile, FILE* file, int number)
+{
+    ConstantInteger* integer = malloc(sizeof(ConstantInteger));
+    integer->tag = CONSTANT_INTEGER;
+    
+    read32(&integer->bytes, 1, file);
+    
+    classfile->constants[number] = (Constant*) integer;
+}
+
 static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number)
 {
     int i;
@@ -311,9 +339,13 @@ static Attribute* generate_attribute(ClassFile* classfile, FILE* file)
         return ((Attribute*) generate_attribute_code(classfile, file, attribute_name_index)); //FIXME is this really correct?
     } else if(strcmp(attribute_name, ATTRIBUTE_SOURCEFILE) == 0) {
         return ((Attribute*) generate_attribute_sourcefile(classfile, file, attribute_name_index));
+    } else if(strcmp(attribute_name, ATTRIBUTE_SIGNATURE) == 0) {
+        return ((Attribute*) generate_attribute_signature(classfile, file, attribute_name_index));
+    } else if(strcmp(attribute_name, ATTRIBUTE_EXCEPTIONS) == 0) {
+        return ((Attribute*) generate_attribute_exceptions(classfile, file, attribute_name_index));
     } else {
         // TODO handle other attributes as well
-        printf("generate_attributes: missing attribute %s\n", attribute_name);
+        printf("generate_attribute: missing attribute %s\n", attribute_name);
     }
 }
 
@@ -368,6 +400,8 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
         
         if (strcmp(attribute_name, ATTRIBUTE_LINENUMBERTABLE) == 0) {
             code->attributes[i] = ((Attribute*) generate_attribute_linenumbertable(classfile, file, attribute_name_index)); //FIXME is that really correct?
+        } else if(strcmp(attribute_name, ATTRIBUTE_STACKMAPTABLE) == 0) {
+            code->attributes[i] = ((Attribute*) generate_attribute_stackmaptable(classfile, file, attribute_name_index));
         } else {
             // TODO add other attributes
             printf("generate_attribute_code: missing attribute %s\n", attribute_name);
@@ -395,6 +429,73 @@ static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* c
     }
     
     return linenumbertable;
+}
+
+static AttributeSignature* generate_attribute_signature(ClassFile* classfile, FILE* file, int attribute_name_index)
+{
+    AttributeSignature* signature = malloc(sizeof(AttributeSignature));
+    
+    signature->attribute_name_index = attribute_name_index;
+    read32(&signature->attribute_length, 1, file);
+    read16(&signature->signature_index, 1, file);
+    
+    return signature;
+}
+
+static AttributeStackMapTable* generate_attribute_stackmaptable(ClassFile* classfile, FILE* file, int attribute_name_index)
+{
+    int i;
+    AttributeStackMapTable* stackmaptable = malloc(sizeof(AttributeStackMapTable));
+    stackmaptable->attribute_name_index = attribute_name_index;
+    
+    read32(&stackmaptable->attribute_length, 1, file);
+    read16(&stackmaptable->stack_map_table_length, 1, file);
+    
+    if (stackmaptable->stack_map_table_length) {
+        stackmaptable->stack_map_table = malloc(stackmaptable->stack_map_table_length * sizeof(StackMapFrame));
+        for (i = 0; i < stackmaptable->stack_map_table_length; i++) {
+            read8(&stackmaptable->stack_map_table[i].frame_type, 1, file);
+            
+            // same_locals_1_stack_item_frame
+            if (stackmaptable->stack_map_table[i].frame_type >= 64 && stackmaptable->stack_map_table[i].frame_type <= 127) {
+                stackmaptable->stack_map_table[i].verification_type_infos = malloc(sizeof(VerificationTypeInfo));
+                generate_verification_type(file, stackmaptable, i, 0);
+            } else if(stackmaptable->stack_map_table[i].frame_type > 64) {
+                // TODO implement
+                printf("generate_attribute_stackmaptable: %i\n", stackmaptable->stack_map_table[i].frame_type);
+            }
+        }
+    }
+    
+    return stackmaptable;
+}
+
+static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count)
+{
+    read8(&stackmaptable->stack_map_table[entry].verification_type_infos[count].tag, 1, file);
+    
+    if (stackmaptable->stack_map_table[entry].verification_type_infos[count].tag >= 7) {
+    read16(&stackmaptable->stack_map_table[entry].verification_type_infos[count].info, 1, file);
+    }
+}
+
+static AttributeExceptions* generate_attribute_exceptions(ClassFile* classfile, FILE* file, int attribute_name_index)
+{
+    int i;
+    AttributeExceptions* exceptions = malloc(sizeof(AttributeExceptions));
+    exceptions->attribute_name_index = attribute_name_index;
+    
+    read32(&exceptions->attribute_length, 1, file);
+    read16(&exceptions->exceptions_count, 1, file);
+    
+    if (exceptions->exceptions_count) {
+        exceptions->exception_index_table = malloc(exceptions->exceptions_count * sizeof(uint16_t));
+        for (i = 0; i < exceptions->exceptions_count; i++) {
+            read16(&exceptions->exception_index_table[i], 1, file);
+        }
+    }
+    
+    return exceptions;
 }
 
 static void read8(uint8_t* ptr, size_t count, FILE* stream)

@@ -33,7 +33,6 @@ void frame_run(Frame* frame)
     
     uint8_t v1, v2;
     while (count) {
-        printf("frame_run: bytecode: %x\n", *code);
         switch (*code) {
             case 0x2:
                 iconst_m1();
@@ -194,6 +193,8 @@ void frame_run(Frame* frame)
                 v1 = *(++code);
                 newarray(v1);
                 break;
+            default:
+                printf("frame_run: bytecode: %x\n", *code);
         }
         code = code + 1;
         count = count - 1;

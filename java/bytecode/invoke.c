@@ -34,13 +34,6 @@ void invokespecial(uint8_t indexbyte1, uint8_t indexbyte2)
     
     // TODO check protected
     
-    if (strcmp(classname, "java/lang/Object") == 0) {
-        // FIXME load real Object, although its constructor does the same
-        stack_pop(frame->stack);
-        
-        return;
-    }
-    
     classfile = classfile_init(classname);
     
     char* name = classfile_get_constant_string(frame->classfile, ((ConstantNameAndType*) frame->classfile->constants[methodref->name_and_type_index])->name_index);

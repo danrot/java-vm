@@ -74,6 +74,18 @@ typedef struct
 typedef struct
 {
     uint8_t tag;
+    uint16_t string_index;
+} ConstantString;
+
+typedef struct
+{
+    uint8_t tag;
+    uint32_t bytes;
+} ConstantInteger;
+
+typedef struct
+{
+    uint8_t tag;
     uint16_t length;
     uint8_t* bytes;
 } ConstantUtf8;
@@ -136,6 +148,41 @@ typedef struct
 
 typedef struct
 {
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t signature_index;
+} AttributeSignature;
+
+typedef struct
+{
+    uint8_t tag;
+    uint16_t info;
+} VerificationTypeInfo;
+
+typedef struct
+{
+    uint8_t frame_type;
+    VerificationTypeInfo* verification_type_infos;
+} StackMapFrame;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t stack_map_table_length;
+    StackMapFrame* stack_map_table;
+} AttributeStackMapTable;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t exceptions_count;
+    uint16_t* exception_index_table;
+} AttributeExceptions;
+
+typedef struct
+{
     uint16_t access_flags;
     uint16_t name_index;
     uint16_t descriptor_index;
@@ -184,12 +231,18 @@ void classfile_destroy(ClassFile* classfile);
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_fieldref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number);
+static void generate_constant_string(ClassFile* classfile, FILE* file, int number);
+static void generate_constant_integer(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_nameandtype(ClassFile* classfile, FILE* file, int number);
 static Attribute* generate_attribute(ClassFile* classfile, FILE* file);
 static AttributeSourceFile* generate_attribute_sourcefile(ClassFile* classfile, FILE* file, int attribute_name_index);
 static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, int attribute_name_index);
 static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeSignature* generate_attribute_signature(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeStackMapTable* generate_attribute_stackmaptable(ClassFile* classfile, FILE* file, int attribute_name_index);
+static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count);
+static AttributeExceptions* generate_attribute_exceptions(ClassFile* classfile, FILE* file, int attribute_name_index);
 static void read8(uint8_t* ptr, size_t count, FILE* stream);
 static void read16(uint16_t* ptr, size_t count, FILE* stream);
 static void read32(uint32_t* ptr, size_t count, FILE* stream);
