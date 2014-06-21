@@ -60,7 +60,7 @@ ClassFile* classfile_init(const char* filename) {
                     generate_constant_methodref(classfile, file, i);
                     break;
                 case CONSTANT_INTERFACEMETHODREF:
-                    printf("interface methodref\n");
+                    generate_constant_interfacemethodref(classfile, file, i);
                     break;
                 case CONSTANT_STRING:
                     generate_constant_string(classfile, file, i);
@@ -72,7 +72,8 @@ ClassFile* classfile_init(const char* filename) {
                     printf("float\n");
                     break;
                 case CONSTANT_LONG:
-                    printf("long\n");
+                    generate_constant_long(classfile, file, i);
+                    i = i + 1;
                     break;
                 case CONSTANT_DOUBLE:
                     printf("double\n");
@@ -102,8 +103,13 @@ ClassFile* classfile_init(const char* filename) {
         read16(&classfile->super_class, 1, file);
         
         read16(&classfile->interfaces_count, 1, file);
+
+        // read interfaces
         
-        // TODO read interfaces
+        classfile->interfaces = malloc(sizeof(uint16_t) * classfile->interfaces_count);
+        for (i = 0; i < classfile->interfaces_count; i++) {
+            read16(&classfile->interfaces[i], 1, file);
+        }
         
         // read fields
         
@@ -268,6 +274,17 @@ static void generate_constant_fieldref(ClassFile* classfile, FILE* file, int num
     classfile->constants[number] = (Constant*) fieldref;
 }
 
+static void generate_constant_interfacemethodref(ClassFile* classfile, FILE* file, int number)
+{
+    ConstantInterfaceMethodRef* interfacemethodref = malloc(sizeof(ConstantInterfaceMethodRef));
+    interfacemethodref->tag = CONSTANT_INTERFACEMETHODREF;
+    
+    read16(&interfacemethodref->class_index, 1, file);
+    read16(&interfacemethodref->name_and_type_index, 1, file);
+    
+    classfile->constants[number] = (Constant*) interfacemethodref;
+}
+
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number)
 {
     ConstantMethodRef* methodref = malloc(sizeof(ConstantMethodRef));
@@ -287,6 +304,17 @@ static void generate_constant_string(ClassFile* classfile, FILE* file, int numbe
     read16(&string->string_index, 1, file);
     
     classfile->constants[number] = (Constant*) string;
+}
+
+static void generate_constant_long(ClassFile* classfile, FILE* file, int number)
+{
+    ConstantLong* longint = malloc(sizeof(ConstantLong));
+    longint->tag = CONSTANT_INTEGER;
+    
+    read32(&longint->high_bytes, 1, file);
+    read32(&longint->low_bytes, 1, file);
+    
+    classfile->constants[number] = (Constant*) longint;
 }
 
 static void generate_constant_integer(ClassFile* classfile, FILE* file, int number)
@@ -343,6 +371,10 @@ static Attribute* generate_attribute(ClassFile* classfile, FILE* file)
         return ((Attribute*) generate_attribute_signature(classfile, file, attribute_name_index));
     } else if(strcmp(attribute_name, ATTRIBUTE_EXCEPTIONS) == 0) {
         return ((Attribute*) generate_attribute_exceptions(classfile, file, attribute_name_index));
+    } else if(strcmp(attribute_name, ATTRIBUTE_CONSTANTVALUE) == 0) {
+        return ((Attribute*) generate_attribute_constantvalue(classfile, file, attribute_name_index));
+    } else if(strcmp(attribute_name, ATTRIBUTE_INNERCLASSES) == 0) {
+        return ((Attribute*) generate_attribute_innerclasses(classfile, file, attribute_name_index));
     } else {
         // TODO handle other attributes as well
         printf("generate_attribute: missing attribute %s\n", attribute_name);
@@ -456,10 +488,37 @@ static AttributeStackMapTable* generate_attribute_stackmaptable(ClassFile* class
         for (i = 0; i < stackmaptable->stack_map_table_length; i++) {
             read8(&stackmaptable->stack_map_table[i].frame_type, 1, file);
             
-            // same_locals_1_stack_item_frame
             if (stackmaptable->stack_map_table[i].frame_type >= 64 && stackmaptable->stack_map_table[i].frame_type <= 127) {
-                stackmaptable->stack_map_table[i].verification_type_infos = malloc(sizeof(VerificationTypeInfo));
-                generate_verification_type(file, stackmaptable, i, 0);
+                // same_locals_1_stack_item_frame
+                stackmaptable->stack_map_table[i].stack = malloc(sizeof(VerificationTypeInfo));
+                generate_verification_type(file, stackmaptable, i, 0, 1);
+            } else if(stackmaptable->stack_map_table[i].frame_type >= 248 && stackmaptable->stack_map_table[i].frame_type <= 250) {
+                // chop_frame
+                read16(&stackmaptable->stack_map_table[i].offset_delta, 1, file);
+            } else if(stackmaptable->stack_map_table[i].frame_type >= 252 && stackmaptable->stack_map_table[i].frame_type <= 254) {
+                // append_frame
+                int j;
+                
+                read16(&stackmaptable->stack_map_table[i].offset_delta, 1, file);
+                stackmaptable->stack_map_table[i].locals = malloc(sizeof(VerificationTypeInfo) * (stackmaptable->stack_map_table[i].frame_type - 251));
+                for (j = 0; j < (stackmaptable->stack_map_table[i].frame_type - 251); j++) {
+                    generate_verification_type(file, stackmaptable, i, j, 0);
+                }
+            } else if(stackmaptable->stack_map_table[i].frame_type == 255) {
+                // full_frame
+                int j;
+                
+                read16(&stackmaptable->stack_map_table[i].offset_delta, 1, file);
+                read16(&stackmaptable->stack_map_table[i].number_of_locals, 1, file);
+                stackmaptable->stack_map_table[i].locals = malloc(sizeof(VerificationTypeInfo) * stackmaptable->stack_map_table[i].number_of_locals);
+                for (j = 0; j < stackmaptable->stack_map_table[i].number_of_locals; j++) {
+                    generate_verification_type(file, stackmaptable, i, j, 0);
+                }
+                read16(&stackmaptable->stack_map_table[i].number_of_stack_items, 1, file);
+                stackmaptable->stack_map_table[i].stack = malloc(sizeof(VerificationTypeInfo) * stackmaptable->stack_map_table[i].number_of_stack_items);
+                for (j = 0; j < stackmaptable->stack_map_table[i].number_of_stack_items; j++) {
+                    generate_verification_type(file, stackmaptable, i, j, 1);
+                }
             } else if(stackmaptable->stack_map_table[i].frame_type > 64) {
                 // TODO implement
                 printf("generate_attribute_stackmaptable: %i\n", stackmaptable->stack_map_table[i].frame_type);
@@ -470,12 +529,19 @@ static AttributeStackMapTable* generate_attribute_stackmaptable(ClassFile* class
     return stackmaptable;
 }
 
-static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count)
+static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count, int stack)
 {
-    read8(&stackmaptable->stack_map_table[entry].verification_type_infos[count].tag, 1, file);
+    VerificationTypeInfo info;
+    if (stack) {
+        info = stackmaptable->stack_map_table[entry].stack[count];
+    } else {
+        info = stackmaptable->stack_map_table[entry].locals[count];
+    }
+
+    read8(&info.tag, 1, file);
     
-    if (stackmaptable->stack_map_table[entry].verification_type_infos[count].tag >= 7) {
-    read16(&stackmaptable->stack_map_table[entry].verification_type_infos[count].info, 1, file);
+    if (info.tag >= 7) {
+    read16(&info.info, 1, file);
     }
 }
 
@@ -496,6 +562,37 @@ static AttributeExceptions* generate_attribute_exceptions(ClassFile* classfile, 
     }
     
     return exceptions;
+}
+
+static AttributeConstantValue* generate_attribute_constantvalue(ClassFile* classfile, FILE* file, int attribute_name_index)
+{
+    AttributeConstantValue* constantvalue = malloc(sizeof(AttributeConstantValue));
+    constantvalue->attribute_name_index = attribute_name_index;
+    
+    read32(&constantvalue->attribute_length, 1, file);
+    read16(&constantvalue->constantvalue_index, 1, file);
+    
+    return constantvalue;
+}
+
+static AttributeInnerClasses* generate_attribute_innerclasses(ClassFile* classfile, FILE* file, int attribute_name_index)
+{
+    int i;
+    AttributeInnerClasses* innerclasses = malloc(sizeof(AttributeInnerClasses));
+    innerclasses->attribute_name_index = attribute_name_index;
+    
+    read32(&innerclasses->attribute_length, 1, file);
+    read16(&innerclasses->number_of_classes, 1, file);
+    
+    innerclasses->classes = malloc(sizeof(InnerClass) * innerclasses->number_of_classes);
+    for (i = 0; i < innerclasses->number_of_classes; i++) {
+        read16(&innerclasses->classes[i].inner_class_info_index, 1, file);
+        read16(&innerclasses->classes[i].outer_class_info_index, 1, file);
+        read16(&innerclasses->classes[i].inner_name_index, 1, file);
+        read16(&innerclasses->classes[i].inner_class_access_flags, 1, file);
+    }
+    
+    return innerclasses;
 }
 
 static void read8(uint8_t* ptr, size_t count, FILE* stream)

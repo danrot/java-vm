@@ -74,6 +74,13 @@ typedef struct
 typedef struct
 {
     uint8_t tag;
+    uint16_t class_index;
+    uint16_t name_and_type_index;
+} ConstantInterfaceMethodRef;
+
+typedef struct
+{
+    uint8_t tag;
     uint16_t string_index;
 } ConstantString;
 
@@ -82,6 +89,13 @@ typedef struct
     uint8_t tag;
     uint32_t bytes;
 } ConstantInteger;
+
+typedef struct
+{
+    uint8_t tag;
+    uint32_t high_bytes;
+    uint32_t low_bytes;
+} ConstantLong;
 
 typedef struct
 {
@@ -162,7 +176,11 @@ typedef struct
 typedef struct
 {
     uint8_t frame_type;
-    VerificationTypeInfo* verification_type_infos;
+    uint16_t offset_delta;
+    uint16_t number_of_locals;
+    VerificationTypeInfo* locals;
+    uint16_t number_of_stack_items;
+    VerificationTypeInfo* stack;
 } StackMapFrame;
 
 typedef struct
@@ -180,6 +198,28 @@ typedef struct
     uint16_t exceptions_count;
     uint16_t* exception_index_table;
 } AttributeExceptions;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t constantvalue_index;
+} AttributeConstantValue;
+
+typedef struct {
+    uint16_t inner_class_info_index;
+    uint16_t outer_class_info_index;
+    uint16_t inner_name_index;
+    uint16_t inner_class_access_flags;
+} InnerClass;
+
+typedef struct
+{
+    uint16_t attribute_name_index;
+    uint32_t attribute_length;
+    uint16_t number_of_classes;
+    InnerClass* classes;
+} AttributeInnerClasses;
 
 typedef struct
 {
@@ -210,7 +250,7 @@ typedef struct
     uint16_t this_class;
     uint16_t super_class;
     uint16_t interfaces_count;
-    uint16_t interfaces;
+    uint16_t* interfaces;
     uint16_t fields_count;
     Field* fields;
     uint16_t methods_count;
@@ -231,8 +271,10 @@ void classfile_destroy(ClassFile* classfile);
 static void generate_constant_class(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_fieldref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_methodref(ClassFile* classfile, FILE* file, int number);
+static void generate_constant_interfacemethodref(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_string(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_integer(ClassFile* classfile, FILE* file, int number);
+static void generate_constant_long(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_utf8(ClassFile* classfile, FILE* file, int number);
 static void generate_constant_nameandtype(ClassFile* classfile, FILE* file, int number);
 static Attribute* generate_attribute(ClassFile* classfile, FILE* file);
@@ -241,8 +283,10 @@ static AttributeCode* generate_attribute_code(ClassFile* classfile, FILE* file, 
 static AttributeLineNumberTable* generate_attribute_linenumbertable(ClassFile* classfile, FILE* file, int attribute_name_index);
 static AttributeSignature* generate_attribute_signature(ClassFile* classfile, FILE* file, int attribute_name_index);
 static AttributeStackMapTable* generate_attribute_stackmaptable(ClassFile* classfile, FILE* file, int attribute_name_index);
-static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count);
+static void generate_verification_type(FILE* file, AttributeStackMapTable* stackmaptable, int entry, int count, int stack);
 static AttributeExceptions* generate_attribute_exceptions(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeConstantValue* generate_attribute_constantvalue(ClassFile* classfile, FILE* file, int attribute_name_index);
+static AttributeInnerClasses* generate_attribute_innerclasses(ClassFile* classfile, FILE* file, int attribute_name_index);
 static void read8(uint8_t* ptr, size_t count, FILE* stream);
 static void read16(uint16_t* ptr, size_t count, FILE* stream);
 static void read32(uint32_t* ptr, size_t count, FILE* stream);
