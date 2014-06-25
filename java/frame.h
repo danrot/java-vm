@@ -12,6 +12,9 @@ struct Frame
     struct Frame* parent;
     Stack* stack;
     uint32_t* locals;
+    
+    uint8_t* current;
+    uint8_t count;
 };
 
 typedef struct Frame Frame;

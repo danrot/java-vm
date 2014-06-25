@@ -7,12 +7,14 @@
 #include "bytecode/sub.h"
 #include "bytecode/mul.h"
 #include "bytecode/div.h"
+#include "bytecode/inc.h"
 #include "bytecode/load.h"
 #include "bytecode/store.h"
 #include "bytecode/new.h"
 #include "bytecode/field.h"
 #include "bytecode/dup.h"
 #include "bytecode/return.h"
+#include "bytecode/branch.h"
 
 Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* parent)
 {
@@ -28,12 +30,15 @@ Frame* frame_init(const ClassFile* classfile, const Method* method, Frame* paren
 
 void frame_run(Frame* frame)
 {
-    uint8_t* code = frame->code->code;
-    int count = frame->code->code_length;
+    frame->current = frame->code->code;
+    frame->count = frame->code->code_length;
     
     uint8_t v1, v2;
-    while (count) {
-        switch (*code) {
+    while (frame->count) {
+        switch (*(frame->current)) {
+            case 0x0:
+                // nop
+                break;
             case 0x2:
                 iconst_m1();
                 break;
@@ -56,18 +61,35 @@ void frame_run(Frame* frame)
                 iconst_5();
                 break;
             case 0x10:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 bipush(v1);
-                count = count - 1;
+                frame->count = frame->count - 1;
+                break;
+            case 0x11:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                sipush(v1, v2);
+                frame->count = frame->count - 1;
+                break;
+            case 0x12:
+                v1 = *(++(frame->current));
+                ldc(v1);
+                frame->count = frame->count -1;
                 break;
             case 0x15:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 iload(v1);
-                count = count - 1;
+                frame->count = frame->count - 1;
+                break;
+            case 0x16:
+                v1 = *(++(frame->current));
+                lload(v1);
+                frame->count = frame->count - 1;
                 break;
             case 0x19:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 aload(v1);
+                frame->count = frame->count - 1;
                 break;
             case 0x1a:
                 iload_0();
@@ -80,6 +102,18 @@ void frame_run(Frame* frame)
                 break;
             case 0x1d:
                 iload_3();
+                break;
+            case 0x1e:
+                lload_0();
+                break;
+            case 0x1f:
+                lload_1();
+                break;
+            case 0x20:
+                lload_2();
+                break;
+            case 0x21:
+                lload_3();
                 break;
             case 0x2a:
                 aload_0();
@@ -97,13 +131,14 @@ void frame_run(Frame* frame)
                 iaload();
                 break;
             case 0x36:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 istore(v1);
-                count = count - 1;
+                frame->count = frame->count - 1;
                 break;
             case 0x3a:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 astore(v1);
+                frame->count = frame->count - 1;
                 break;
             case 0x3b:
                 istore_0();
@@ -147,6 +182,36 @@ void frame_run(Frame* frame)
             case 0x6c:
                 idiv();
                 break;
+            case 0x84:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                iinc(v1, v2);
+                frame->count = frame->count - 2;
+                break;
+            case 0x9c:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                ifge(v1, v2);
+                frame->count = frame->count - 2;
+                break;
+            case 0x9e:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                ifle(v1, v2);
+                frame->count = frame->count - 2;
+                break;
+            case 0xa2:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                if_icmpge(v1, v2);
+                frame->count = frame->count - 2;
+                break;
+            case 0xa7:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                gotoj(v1, v2);
+                frame->count = frame->count - 2;
+                break;
             case 0xac:
                 ireturn();
                 break;
@@ -154,50 +219,56 @@ void frame_run(Frame* frame)
                 returnj();
                 break;
             case 0xb4:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 getfield(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;
             case 0xb5:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 putfield(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;
             case 0xb6:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 invokevirtual(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;    
             case 0xb7:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 invokespecial(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;
             case 0xb8:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 invokestatic(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;
             case 0xbb:
-                v1 = *(++code);
-                v2 = *(++code);
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
                 new(v1, v2);
-                count = count - 2;
+                frame->count = frame->count - 2;
                 break;
             case 0xbc:
-                v1 = *(++code);
+                v1 = *(++(frame->current));
                 newarray(v1);
                 break;
+            case 0xbd:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                anewarray(v1, v2);
+                frame->count = frame->count - 2;
+                break;
             default:
-                printf("frame_run: bytecode: %x\n", *code);
+                printf("frame_run: bytecode: %x\n", *frame->current);
         }
-        code = code + 1;
-        count = count - 1;
+        frame->current = frame->current + 1;
+        frame->count = frame->count - 1;
     }
 }
 

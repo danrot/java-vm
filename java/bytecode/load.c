@@ -1,5 +1,18 @@
 #include "load.h"
 
+void ldc(int index)
+{
+    Constant* constant = frame->classfile->constants[index];
+    
+    switch (constant->tag) {
+        case 3:
+            stack_push(frame->stack, ((ConstantInteger*) constant)->bytes);
+            break;
+        default:
+            printf("ldc: missing tag %i\n", constant->tag);
+    }
+}
+
 void iload(int index)
 {
     stack_push(frame->stack, frame->locals[index]);
@@ -23,6 +36,32 @@ void iload_2()
 void iload_3()
 {
     iload(3);
+}
+
+void lload(int index)
+{
+    // TODO long should be pushed on twice?
+    stack_push(frame->stack, frame->locals[index]);
+}
+
+void lload_0()
+{
+    lload(0);
+}
+
+void lload_1()
+{
+    lload(1);
+}
+
+void lload_2()
+{
+    lload(2);
+}
+
+void lload_3()
+{
+    lload(3);
 }
 
 void aload(uint8_t index)

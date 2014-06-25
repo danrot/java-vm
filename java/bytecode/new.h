@@ -15,6 +15,9 @@
 extern Frame* frame;
 
 void newarray(uint8_t atype);
+void anewarray(uint8_t indexbyte1, uint8_t indexbyte2);
 void new(uint8_t indexbyte1, uint8_t indexbyte2);
+
+static int calculate_object_size(const char* classname);
 
 #endif

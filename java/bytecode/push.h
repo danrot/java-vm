@@ -15,4 +15,6 @@ void iconst_3(void);
 void iconst_4(void);
 void iconst_5(void);
 
+void sipush(uint8_t byte1, uint8_t byte2);
+
 #endif

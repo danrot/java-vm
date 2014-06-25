@@ -39,3 +39,8 @@ void iconst_5(void)
 {
     bipush(5);
 }
+
+void sipush(uint8_t byte1, uint8_t byte2)
+{
+    stack_push(frame->stack, (byte1 << 8) | byte2);
+}

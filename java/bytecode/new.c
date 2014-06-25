@@ -18,15 +18,41 @@ void newarray(uint8_t atype)
     stack_push(frame->stack, (int)(uintptr_t) array);
 }
 
+void anewarray(uint8_t indexbyte1, uint8_t indexbyte2)
+{
+    int count = stack_pop(frame->stack);
+    uint16_t index = (indexbyte1 << 8) | indexbyte2;
+    int size;
+    void* array;
+    
+    char* classname = classfile_get_constant_string(frame->classfile, ((ConstantClass*) frame->classfile->constants[index])->name_index);
+    
+    size = calculate_object_size(classname);
+    
+    array = malloc(size * count);
+    
+    stack_push(frame->stack, (int)(uintptr_t) array);
+}
+
 void new(uint8_t indexbyte1, uint8_t indexbyte2)
 {
-    int i, size;
-    const ClassFile* classfile;
+    int size;
     void* object;
 
     uint16_t index = (indexbyte1 << 8) | indexbyte2;
     
     char* classname = classfile_get_constant_string(frame->classfile, ((ConstantClass*) frame->classfile->constants[index])->name_index);
+    
+    size = calculate_object_size(classname);
+    
+    object = malloc(size);
+    
+    stack_push(frame->stack, (int)(uintptr_t) object);
+}
+
+static int calculate_object_size(const char* classname) {
+    int i, size;
+    const ClassFile* classfile;
     
     // TODO check access    
     classfile = classfile_init(classname);
@@ -44,8 +70,6 @@ void new(uint8_t indexbyte1, uint8_t indexbyte2)
         }
     }
     
-    object = malloc(size);
-    
-    stack_push(frame->stack, (int)(uintptr_t) object);
+    return size;
 }
 
