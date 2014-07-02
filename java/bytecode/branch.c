@@ -24,6 +24,13 @@ void if_icmpge(uint8_t branchbyte1, uint8_t branchbyte2)
     }
 }
 
+void ifnonnull(uint8_t branchbyte1, uint8_t branchbyte2)
+{
+    if (stack_pop(frame->stack) != 0x0) {
+        jump(branchbyte1, branchbyte2);
+    }
+}
+
 void gotoj(uint8_t branchbyte1, uint8_t branchbyte2)
 {
     jump(branchbyte1, branchbyte2);

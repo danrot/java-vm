@@ -55,3 +55,9 @@ void getfield(uint8_t indexbyte1, uint8_t indexbyte2)
     stack_push(frame->stack, *(int*)(objectref + position));
 }
 
+void getstatic(uint8_t indexbyte1, uint8_t indexbyte2)
+{
+    uint16_t index = (indexbyte1 << 8) | indexbyte2;
+    
+}
+

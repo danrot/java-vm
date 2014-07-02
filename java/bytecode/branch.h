@@ -10,6 +10,8 @@ void ifge(uint8_t branchbyte1, uint8_t branchbyte2);
 
 void if_icmpge(uint8_t branchbyte1, uint8_t branchbyte2);
 
+void ifnonnull(uint8_t branchbyte1, uint8_t branchbyte2);
+
 void gotoj(uint8_t branchbyte1, uint8_t branchbyte2);
 
 static void jump(uint8_t branchbyte1, uint8_t branchbyte2);

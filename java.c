@@ -25,7 +25,7 @@ int main(int argc, char** argv)
         strncpy(pos, "/", 1);
     }
     
-    classfiles = hashtable_init(10); // TODO make the length more dynamic
+    classfiles = hashtable_init(100); // TODO make the length more dynamic
 
     ClassFile* classfile = classfile_init(classname);
     

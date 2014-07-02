@@ -8,4 +8,5 @@ The following functionality have been implemented:
 * integer arrays
 * create objects
 * writing and accessing fields in objects
+* loops
 

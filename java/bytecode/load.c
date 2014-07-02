@@ -5,8 +5,11 @@ void ldc(int index)
     Constant* constant = frame->classfile->constants[index];
     
     switch (constant->tag) {
-        case 3:
+        case CONSTANT_INTEGER:
             stack_push(frame->stack, ((ConstantInteger*) constant)->bytes);
+            break;
+        case CONSTANT_STRING:
+            stack_push(frame->stack, (int)(uintptr_t) constant);
             break;
         default:
             printf("ldc: missing tag %i\n", constant->tag);

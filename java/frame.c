@@ -264,6 +264,12 @@ void frame_run(Frame* frame)
                 anewarray(v1, v2);
                 frame->count = frame->count - 2;
                 break;
+            case 0xc7:
+                v1 = *(++(frame->current));
+                v2 = *(++(frame->current));
+                ifnonnull(v1, v2);
+                frame->count = frame->count - 2;
+                break;
             default:
                 printf("frame_run: bytecode: %x\n", *frame->current);
         }
